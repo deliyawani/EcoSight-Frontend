@@ -1,5 +1,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { registerUser } from '../services/UserService';
 
 const RegisterComponent = () => {
 
@@ -10,18 +11,21 @@ const RegisterComponent = () => {
     const [lastName, setLastName] = useState('')
     const [email, setEmail] = useState('')
     const [password, setPassword] = useState('')
-    const [role, setRole] = useState('Contributor');
+    const [role, setRole] = useState('CONTRIBUTOR');
 
 
     function saveRegistration(e) {
         e.preventDefault();
 
-        const login = { firstName, lastName, email, password, role };
-        console.log(login);
+        const user = { firstName, lastName, email, password, role};
 
-        if(role == 'Contributor'){
+        registerUser(user).then((response) => {
+            console.log(response.data);
+        })
+
+        if(role == 'CONTRIBUTOR'){
             navigator('/c-home');
-        } else if(role == 'Researcher') {
+        } else if(role == 'RESEARCHER') {
             navigator('/r-home');
         }
     }
@@ -113,8 +117,8 @@ const RegisterComponent = () => {
                                         value={role}
                                         onChange={(e) => setRole(e.target.value)}
                                     >
-                                        <option value='Contributor'>Contributor</option>
-                                        <option value='Researcher'>Researcher</option>
+                                        <option value='CONTRIBUTOR'>Contributor</option>
+                                        <option value='RESEARCHER'>Researcher</option>
                                     </select>
                                 </div>
 
