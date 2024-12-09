@@ -1,70 +1,107 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { viewSighting, deleteSighting, updateSighting } from '../services/SightingService';
 
 const ViewSightingComponent = () => {
-
     const navigator = useNavigate();
+    const location = useLocation();
+    const { id, sId, role } = location.state || {};
+    const [status, setStatus] = useState('PENDING');
+    const [sightingInfo, setSighting] = useState(null);
 
-    const dummyData = [
-        {
-            "species": "Alces alces",
-            "common": "Moose",
-            "lat": "1.1",
-            "lon": "1.1",
-            "img": "img",
-            "valid": "false"
-        }
+    useEffect(() => {
+        viewSighting(sId, { headers: { 'X-User-Id': id } })
+            .then((response) => {
+                setSighting(response.data);
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    }, [sId, id]);
 
-    ]
+    const remove = () => {
+        deleteSighting(sId, { headers: { 'X-User-Id': id } })
+            .then(() => {
+                navigator('/c-home', { state: { id } });
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    };
+
+    const statusUpdate = (newStatus) => {
+        updateSighting(sId, { status: newStatus }, { headers: { 'X-User-Id': id } }
+        )
+            .then(() => {
+                navigator('/r-home', { state: { id } });
+            })
+            .catch((error) => {
+                console.error(error);
+            });
+    };
 
 
-    const remove = (sighting) => {
-
-      navigator('/c-home');
-
-        console.log("Submission Removed")
+    if (!sightingInfo) {
+        return <div>Loading...</div>;
     }
 
     return (
-        <div className='container'>
+        <div>
+            <button className="btn btn-light btn-lg" onClick={() => navigator(-1, { state: { id } })}>Back to All Submissions</button>
+            <div className="container">
+                <h2 className="text-center">Sighting Information</h2>
+                <br />
 
-            <br></br>
-            <br></br>
-
-            <h2 className='text-center'>Sighting Information</h2>
-
-            <br></br>
-
-            <table className='table table-striped table-bordered'>
-                <thead>
-                    <tr>
-                        <th>Species Scientific Name</th>
-                        <th>Common Name</th>
-                        <th>Latitude</th>
-                        <th>Longitude</th>
-                        <th>Images</th>
-                        <th>Verified</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {
-                        dummyData.map(sighting =>
-                            <tr key={sighting.species}>
-                                <td>{sighting.species}</td>
-                                <td>{sighting.common}</td>
-                                <td>{sighting.lat}</td>
-                                <td>{sighting.lon}</td>
-                                <td>{sighting.img}</td>
-                                <td>{sighting.valid}</td>
+                <table className="table table-striped table-bordered">
+                    <tbody>
+                        {Object.entries(sightingInfo).map(([key, value]) => (
+                            <tr key={key}>
+                                <td>{key}</td>
+                                <td>
+                                    {key === 'imageUrls' && Array.isArray(value)
+                                        ? value.map((url, index) => (
+                                            <a key={index} href={url} target="_blank" rel="noopener noreferrer">
+                                                Image {index + 1}
+                                            </a>
+                                        ))
+                                        : String(value)}
+                                </td>
                             </tr>
-                        )
-                    }
-                </tbody>
-            </table>
-            <button className='btn btn-success' onClick={remove} >Remove Sighting</button>
+                        ))}
+                    </tbody>
+                </table>
 
+                <br />
+
+                {role === 'CONTRIBUTOR' && (
+                    <button className="btn btn-dark" onClick={remove}>
+                        Remove Sighting
+                    </button>
+                )}
+
+                {role === 'RESEARCHER' && (
+                    <div className="form-group">
+                        <label className="form-label">Change Status:</label>
+                        <select
+                            className="form-control"
+                            value={status}
+                            onChange={(e) => {
+                                setStatus(e.target.value);
+                                statusUpdate(e.target.value);
+                            }}
+                        >
+                            <option value="REJECTED">Rejected</option>
+                            <option value="PENDING">Pending</option>
+                            <option value="APPROVED">Approved</option>
+                        </select>
+                    </div>
+                )}
+
+                <br></br>
+                <br></br>
+            </div>
         </div>
-    )
-}
+    );
+};
 
-export default ViewSightingComponent
+export default ViewSightingComponent;

@@ -6,7 +6,6 @@ const RegisterComponent = () => {
 
     const navigator = useNavigate();
 
-
     const [firstName, setFirstName] = useState('')
     const [lastName, setLastName] = useState('')
     const [email, setEmail] = useState('')
@@ -20,26 +19,23 @@ const RegisterComponent = () => {
         const user = { firstName, lastName, email, password, role};
 
         registerUser(user).then((response) => {
-            console.log(response.data);
-        })
-
-        if(role == 'CONTRIBUTOR'){
-            navigator('/c-home');
-        } else if(role == 'RESEARCHER') {
-            navigator('/r-home');
-        }
+            const id = response.data.id;
+            if(role == 'CONTRIBUTOR'){
+                navigator('/c-home', {state: {id}});
+            } else if(role == 'RESEARCHER') {
+                navigator('/r-home', {state: {id}});
+            }
+        }).catch((error) => {
+            console.error(error);
+        });
     }
 
 
     return (
         <div>
+            <button className="btn btn-light btn-lg" onClick={() => navigator('/')}>Back to Home Page</button>
             <br></br>
             <br></br>
-            <h1 className='text-center'><strong>EcoSight</strong></h1>
-            <br></br>
-            <br></br>
-            
-
 
             <div className='container'>
                 <div className='row'>
@@ -126,7 +122,7 @@ const RegisterComponent = () => {
                                 <br></br>
                                 <br></br>
 
-                                <button className='btn btn-success' onClick={saveRegistration} >Register</button>
+                                <button className='btn btn-dark' onClick={saveRegistration} >Register</button>
 
                             </form>
                         </div>

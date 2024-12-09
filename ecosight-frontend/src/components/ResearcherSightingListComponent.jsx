@@ -1,77 +1,104 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { allSightings, exportSightings } from '../services/SightingService';
 
 const ResearcherSightingListComponent = () => {
+  const navigator = useNavigate();
 
-    const navigator = useNavigate();
+  const [sightings, setSightings] = useState([]);
+  const location = useLocation();
+  const id = location.state?.id;
 
+  useEffect(() => {
+    if (id) {
+      allSightings({ headers: { 'X-User-Id': id } })
+        .then((response) => {
+          setSightings(response.data);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+  }, [id]);
 
-    const dummyData = [
-      {
-        "common": "Magpie" ,
-        "date": "2012-12-12"
-      },
-      {
-        "common": "Canada Goose" ,
-        "date": "2011-11-11"
-      },
-      {
-        "common": "Blue Jay" ,
-        "date": "2010-10-10"
-      },
-      {
-        "common": "Moose" ,
-        "date": "2009-09-09"
-      }
+  const rowClick = (sighting) => {
+    const sId = sighting.sightingId;
+    const role = 'RESEARCHER';
+    navigator('/view-sighting', { state: { id, sId, role } });
+  };
 
-  ]
-
-
-  const rowClick = (sighting) =>{
-
-    console.log(sighting.common);
-    navigator('/validate-sighting');
-  }
+  const exportCSV = () => {
+    exportSightings({ headers: { 'X-User-Id': id }, responseType: 'blob' })
+      .then((response) => {
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'sightings_export.csv');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+      })
+      .catch((error) => {
+        console.error(error);
+        alert('Failed to export CSV. Please try again.');
+      });
+  };
 
 
   return (
-    <div className='container '>
-      
-            <br></br>
-            <br></br>
+    <div><button className="btn btn-light btn-lg" onClick={() => navigator('/sign-in')}>Back to Sign In</button>
+      <div className="container">
 
+        <br />
+        <br />
+        <h2 className="text-center">Submissions</h2>
+        <br />
 
-            <h2 className='text-center'>Submissions</h2>
-
-            <br></br>
-
-            <table className='table table-striped table-bordered'>
+        {sightings.length === 0 ? (
+          <div className="text-center">
+            <p>No submissions available.</p>
+          </div>
+        ) : (
+          <>
+            <table className="table table-striped table-bordered">
               <thead>
                 <tr>
-                  <th>Date</th>
+                  <th>Sighting ID</th>
+                  <th>Time of Submission</th>
+                  <th>Contributor ID</th>
+                  <th>Contributor Email</th>
+                  <th>Scientific Name</th>
                   <th>Common Name</th>
                 </tr>
               </thead>
               <tbody>
-                {
-                  dummyData.map(sighting =>
-                    <tr key = {sighting.date}
-                        onClick={() => rowClick(sighting)}
-                        style={{ cursor: 'pointer'}}>
-                      <td>{sighting.date}</td>
-                      <td>{sighting.common}</td>
-                    </tr>
-                  )
-                }
+                {sightings.map((sighting) => (
+                  <tr
+                    key={sighting.sightingId}
+                    onClick={() => rowClick(sighting)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td>{sighting.sightingId}</td>
+                    <td>{sighting.sightingTime}</td>
+                    <td>{sighting.contributorId}</td>
+                    <td>{sighting.contributorEmail}</td>
+                    <td>{sighting.scientificName}</td>
+                    <td>{sighting.commonName}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
 
 
+            <button className="btn btn-dark" onClick={exportCSV}>
+              Export CSV
+            </button>
+          </>
+
+        )}
+      </div>
     </div>
+  );
+};
 
-    
-
-  )
-}
-
-export default ResearcherSightingListComponent
+export default ResearcherSightingListComponent;

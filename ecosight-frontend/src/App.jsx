@@ -8,29 +8,29 @@ import ContributorSightingListComponent from './components/ContributorSightingLi
 import ResearcherSightingListComponent from './components/ResearcherSightingListComponent'
 import AdminUserListComponent from './components/AdminUserListComponent'
 import ViewSightingComponent from './components/ViewSightingComponent'
-import ValidateSightingComponent from './components/ValidateSightingComponent'
 import ViewUserComponent from './components/ViewUserComponent'
+import HeaderComponent from './components/HeaderComponent'
 
 function App() {
 
 
   return (
     <>
-      <BrowserRouter>
-        <Routes>
-          <Route path='/' element= { <MainPageComponent />}></Route>
-          <Route path='/sign-in' element= { <LoginComponent />}></Route>
-          <Route path='/register' element= { <RegisterComponent />}></Route>
-          <Route path='/c-home' element= { <ContributorSightingListComponent />}></Route>
-          <Route path='/r-home' element= { <ResearcherSightingListComponent />}></Route>
-          <Route path='/a-home' element= { <AdminUserListComponent />}></Route>
-          <Route path='/view-sighting' element= { <ViewSightingComponent />}></Route>
-          <Route path='/submit-sighting' element= { <SubmitSightingComponent />}></Route>
-          <Route path='/validate-sighting' element= { <ValidateSightingComponent />}></Route>
-          <Route path='/view-user' element= { <ViewUserComponent />}></Route>
-        </Routes>
 
-      </BrowserRouter>
+    <HeaderComponent />
+        <BrowserRouter>
+          <Routes>
+            <Route path='/' element={<MainPageComponent />}></Route>
+            <Route path='/sign-in' element={<LoginComponent />}></Route>
+            <Route path='/register' element={<RegisterComponent />}></Route>
+            <Route path='/c-home' element={<ContributorSightingListComponent />}></Route>
+            <Route path='/r-home' element={<ResearcherSightingListComponent />}></Route>
+            <Route path='/a-home' element={<AdminUserListComponent />}></Route>
+            <Route path='/view-sighting' element={<ViewSightingComponent />}></Route>
+            <Route path='/submit-sighting' element={<SubmitSightingComponent />}></Route>
+            <Route path='/view-user' element={<ViewUserComponent />}></Route>
+          </Routes>
+        </BrowserRouter>
     </>
   )
 }

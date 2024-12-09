@@ -1,73 +1,70 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { allUsers } from '../services/UserService';
 
 const AdminUserListComponent = () => {
+  const navigator = useNavigate();
+  const [users, setUsers] = useState([]);
+  const location = useLocation();
+  const id = location.state?.id;
 
-    const navigator = useNavigate();
+  useEffect(() => {
+    allUsers({ headers: { 'X-User-Id': id } })
+      .then((response) => {
+        setUsers(response.data);
+      })
+      .catch((error) => {
+        console.error(error);
+      });
+  }, [id]);
 
-
-    const dummyData = [
-      {
-        "firstName": "John" ,
-        "lastName": "Smith",
-        "email": "johnsmith@gmail.com"
-      },
-      {
-        "firstName": "Mary" ,
-        "lastName": "Jane",
-        "email": "maryjane@shaw.ca"
-      }
-
-  ]
-
-
-  const rowClick = (user) =>{
-
-    console.log(user.email, user.firstName, user.lastName);
-    navigator('/view-user');
-  }
-
+  const rowClick = (user) => {
+    const uId = user.id;
+    navigator('/view-user', { state: { id, uId } });
+  };
 
   return (
-    <div className='container '>
-      
-            <br></br>
-            <br></br>
+    <div>
+      <button className="btn btn-light btn-lg" onClick={() => navigator('/sign-in')}>
+        Back to Sign In
+      </button>
+      <div className="container">
+        <br />
+        <br />
+        <h2 className="text-center">User Information</h2>
+        <br />
 
-
-            <h2 className='text-center'>User Information</h2>
-
-            <br></br>
-
-            <table className='table table-striped table-bordered'>
-              <thead>
-                <tr>
-                  <th>First Name</th>
-                  <th>Last Name</th>
-                  <th>Email</th>
+        {users.length === 0 ? (
+          <div className="text-center">
+            <p>No users found.</p>
+          </div>
+        ) : (
+          <table className="table table-striped table-bordered">
+            <thead>
+              <tr>
+                <th>User ID</th>
+                <th>Email</th>
+                <th>Role</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map((user) => (
+                <tr
+                  key={user.id}
+                  onClick={() => rowClick(user)}
+                  style={{ cursor: 'pointer' }}
+                >
+                  <td>{user.id}</td>
+                  <td>{user.email}</td>
+                  <td>{user.role}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {
-                  dummyData.map(user =>
-                    <tr key = {user.email}
-                        onClick={() => rowClick(user)}
-                        style={{ cursor: 'pointer'}}>
-                      <td>{user.firstName}</td>
-                      <td>{user.lastName}</td>
-                      <td>{user.email}</td>
-                    </tr>
-                  )
-                }
-              </tbody>
-            </table>
-
-
+              ))}
+            </tbody>
+          </table>
+        )}
+      </div>
     </div>
+  );
+};
 
-    
-
-  )
-}
-
-export default AdminUserListComponent
+export default AdminUserListComponent;

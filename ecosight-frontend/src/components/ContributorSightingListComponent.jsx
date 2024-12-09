@@ -1,78 +1,88 @@
-import React, { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { usersSightings } from '../services/SightingService';
 
 const ContributorSightingListComponent = () => {
+  const navigator = useNavigate();
 
-    const navigator = useNavigate();
+  const [sightings, setSightings] = useState([]);
+  const location = useLocation();
+  const id = location.state?.id;
 
+  useEffect(() => {
+    if (id) {
+      usersSightings(id, { headers: { 'X-User-Id': id } })
+        .then((response) => {
+          setSightings(response.data);
+        })
+        .catch((error) => {
+          console.error(error);
+        });
+    }
+  }, [id]);
 
-    const dummyData = [
-      {
-        "common": "Magpie" ,
-        "date": "2012-12-12"
-      },
-      {
-        "common": "Canada Goose" ,
-        "date": "2011-11-11"
-      },
-      {
-        "common": "Blue Jay" ,
-        "date": "2010-10-10"
-      }
+  const rowClick = (sighting) => {
+    const sId = sighting.sightingId;
+    const role = 'CONTRIBUTOR';
+    navigator('/view-sighting', { state: { id, sId, role } });
+  };
 
-  ]
-
-
-  const rowClick = (sighting) =>{
-
-    console.log(sighting.common);
-    navigator('/view-sighting');
-  }
-
-  const newSubmission = () =>{
-    navigator('/submit-sighting');
-  }
-
+  const newSubmission = () => {
+    navigator('/submit-sighting', { state: { id } });
+  };
 
   return (
-    <div className='container '>
-      
-            <br></br>
-            <br></br>
+    <div>
+      <button className="btn btn-light btn-lg" onClick={() => navigator('/sign-in')}>Back to Sign In</button>
+      <div className="container">
 
+        <br />
+        <br />
+        <h2 className="text-center">My Submissions</h2>
+        <br />
 
-            <h2 className='text-center'>My Submissions</h2>
-
-            <br></br>
-
-            <table className='table table-striped table-bordered'>
+        {sightings.length === 0 ? (
+          <div className="text-center">
+            <p>No submissions yet!</p>
+            <button className="btn btn-dark" onClick={newSubmission}>
+              Create New Submission
+            </button>
+          </div>
+        ) : (
+          <>
+            <table className="table table-striped table-bordered">
               <thead>
                 <tr>
-                  <th>Date</th>
+                  <th>Sighting ID</th>
+                  <th>Time of Submission</th>
+                  <th>Scientific Name</th>
                   <th>Common Name</th>
                 </tr>
               </thead>
               <tbody>
-                {
-                  dummyData.map(sighting =>
-                    <tr key = {sighting.date}
-                        onClick={() => rowClick(sighting)}
-                        style={{ cursor: 'pointer'}}>
-                      <td>{sighting.date}</td>
-                      <td>{sighting.common}</td>
-                    </tr>
-                  )
-                }
+                {sightings.map((sighting) => (
+                  <tr
+                    key={sighting.sightingId}
+                    onClick={() => rowClick(sighting)}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    <td>{sighting.sightingId}</td>
+                    <td>{sighting.sightingTime}</td>
+                    <td>{sighting.scientificName}</td>
+                    <td>{sighting.commonName}</td>
+                  </tr>
+                ))}
               </tbody>
             </table>
 
-            <button className='btn btn-success' onClick={newSubmission} >New Submission</button>
-
+            <button className="btn btn-dark" onClick={newSubmission}>
+              New Submission
+            </button>
+          </>
+        )}
+      </div>
     </div>
+  );
+};
 
-    
-
-  )
-}
-
-export default ContributorSightingListComponent
+export default ContributorSightingListComponent;
